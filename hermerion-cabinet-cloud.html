@@ -352,6 +352,186 @@
                 padding: 20px;
             }
         }
+        
+        /* STYLES POUR LA COMPTABILITÉ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(25, 25, 35, 0.6) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+        }
+        
+        .stat-card h3 {
+            font-size: 2.5em;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        /* ACCORDÉONS POUR ARCHIVES */
+        .accordion-item {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .accordion-item:hover {
+            border-color: var(--gold);
+        }
+        
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .accordion-header:hover {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+        }
+        
+        .accordion-header h3 {
+            color: var(--gold);
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .accordion-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+            color: var(--gold);
+        }
+        
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .accordion-item.active .accordion-content {
+            max-height: 2000px;
+        }
+        
+        .accordion-body {
+            padding: 0 25px 25px;
+        }
+        
+        /* ENCADREMENTS POUR DOSSIERS */
+        .dossier-card {
+            background: linear-gradient(135deg, rgba(25, 25, 35, 0.9) 0%, rgba(25, 25, 35, 0.7) 100%);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .dossier-card:hover {
+            transform: translateX(5px);
+            border-left-color: var(--gold-light);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.15);
+        }
+        
+        .dossier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .dossier-header h4 {
+            color: var(--gold);
+            font-size: 1.1em;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .dossier-date {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .dossier-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .dossier-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .dossier-info-label {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .dossier-info-value {
+            color: var(--text-primary);
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+        
+        .dossier-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .dossier-actions button {
+            padding: 8px 16px;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -419,61 +599,73 @@
         <div class="main-content">
         <!-- COMPTABILITÉ -->
         <div id="comptabilite" class="content">
-            <h2 style="color: #8b7355; margin-bottom: 10px;">🔒 Comptabilité du Cabinet<span class="private-badge">Privé</span></h2>
-            <p style="color: #b0b0b0; margin-bottom: 25px;">Vue d'ensemble des finances du cabinet</p>
+            <h2>💼 Comptabilité du Cabinet<span class="private-badge">Privé</span></h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.05em;">Vue d'ensemble des finances du cabinet</p>
             
+            <!-- STATISTIQUES EN CARTES -->
             <div class="stats-grid">
                 <div class="stat-card">
+                    <div style="font-size: 3em; margin-bottom: 10px;">💰</div>
                     <h3 id="totalRevenu">0 $</h3>
                     <p>Revenus Total</p>
                 </div>
                 <div class="stat-card">
+                    <div style="font-size: 3em; margin-bottom: 10px;">📊</div>
                     <h3 id="totalDossiers">0</h3>
                     <p>Dossiers Traités</p>
                 </div>
                 <div class="stat-card">
+                    <div style="font-size: 3em; margin-bottom: 10px;">💵</div>
                     <h3 id="moyenneHonoraire">0 $</h3>
                     <p>Moyenne par Dossier</p>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>🔍 Rechercher dans la comptabilité</label>
-                <input type="text" id="searchCompta" placeholder="Rechercher par client, affaire, type...">
+            <!-- BARRE DE RECHERCHE -->
+            <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="color: var(--gold); font-weight: 600; margin-bottom: 10px; display: block;">🔍 Rechercher dans la comptabilité</label>
+                    <input type="text" id="searchCompta" placeholder="Rechercher par client, affaire, type...">
+                </div>
             </div>
 
-            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                <button onclick="telechargerComptabiliteExcel()" style="background: linear-gradient(135deg, #217346 0%, #2d9f5d 100%);">
-                    📊 Télécharger Comptabilité (Excel)
+            <!-- BOUTONS D'EXPORT -->
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+                <button onclick="telechargerComptabiliteExcel()" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); flex: 1; min-width: 200px;">
+                    📊 Export Excel
                 </button>
-                <button onclick="telechargerComptabilitePDF()" style="background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);">
-                    📄 Télécharger Comptabilité (PDF)
+                <button onclick="telechargerComptabilitePDF()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); flex: 1; min-width: 200px;">
+                    📄 Export PDF
                 </button>
-                <button onclick="telechargerFacturesExcel()" style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);">
-                    💼 Télécharger Factures (Excel)
+                <button onclick="telechargerFacturesExcel()" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); flex: 1; min-width: 200px;">
+                    💼 Factures Excel
                 </button>
             </div>
 
-            <table id="comptaTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th>Affaire / Description</th>
-                        <th>Type d'affaire</th>
-                        <th>Peine / Procédure</th>
-                        <th>Honoraires</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="comptaBody">
-                    <tr>
-                        <td colspan="7" style="text-align: center; color: #b8995a; padding: 30px;">
-                            Aucune entrée comptable pour le moment
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- TABLEAU MODERNE -->
+            <div style="background: var(--bg-card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border);">
+                <table id="comptaTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Affaire / Description</th>
+                            <th>Type d'affaire</th>
+                            <th>Peine / Procédure</th>
+                            <th>Honoraires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comptaBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--gold); padding: 40px;">
+                                <div style="font-size: 3em; margin-bottom: 15px;">📂</div>
+                                <div style="font-size: 1.1em;">Aucune entrée comptable pour le moment</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- BARÈME HONORAIRES -->
@@ -814,72 +1006,77 @@
 
         <!-- ARCHIVES (PRIVÉ) -->
         <div id="archives" class="content">
-            <h2 style="color: #8b7355; margin-bottom: 10px;">🔒 Archives du Cabinet<span class="private-badge">Privé</span></h2>
-            <p style="color: #b0b0b0; margin-bottom: 25px;">Tous les dossiers et documents archivés</p>
+            <h2>🗄️ Archives du Cabinet<span class="private-badge">Privé</span></h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.05em;">Tous les dossiers et documents archivés</p>
             
-            <form id="archiveForm" style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); padding: 30px; border-radius: 15px; border: 3px solid #8b7355; margin-bottom: 30px; box-shadow: 0 5px 20px rgba(139, 115, 85, 0.1);">
-                <h3 style="color: #8b7355; margin-bottom: 25px; font-size: 1.4em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Archiver un Dossier</h3>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>N° Dossier</label>
-                        <input type="text" id="archiveNum" required>
+            <!-- FORMULAIRE D'ARCHIVAGE -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px;">
+                <form id="archiveForm">
+                    <h3 style="color: var(--gold); margin-bottom: 25px; font-size: 1.4em; font-weight: 700;">📁 Archiver un Dossier</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N° Dossier</label>
+                            <input type="text" id="archiveNum" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="archiveType">
+                                <option value="Affaire Clôturée">Affaire Clôturée</option>
+                                <option value="Document">Document</option>
+                                <option value="Contrat">Contrat</option>
+                                <option value="Correspondance">Correspondance</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Date de Clôture</label>
+                            <input type="date" id="archiveDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Client</label>
+                            <input type="text" id="archiveClient" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Avocat(s) Responsable(s)</label>
+                            <select id="archiveAvocat" multiple size="4" required style="height: auto;">
+                                <option value="">Aucun avocat disponible</option>
+                            </select>
+                            <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 5px;">
+                                Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs avocats
+                            </p>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Type</label>
-                        <select id="archiveType">
-                            <option value="Affaire Clôturée">Affaire Clôturée</option>
-                            <option value="Document">Document</option>
-                            <option value="Contrat">Contrat</option>
-                            <option value="Correspondance">Correspondance</option>
-                        </select>
+                        <label>Description / Résumé</label>
+                        <textarea id="archiveDescription" required></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label>Date de Clôture</label>
-                        <input type="date" id="archiveDate" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Client</label>
-                        <input type="text" id="archiveClient" required>
+                        <label>📎 Fichiers Joints (PDF, PNG, JPG, DOCX...)</label>
+                        <input type="file" id="archiveFiles" multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.txt" 
+                               style="padding: 15px; cursor: pointer;">
+                        <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">Vous pouvez sélectionner plusieurs fichiers</p>
+                        <div id="filesList" style="margin-top: 10px;"></div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Avocat(s) Responsable(s)</label>
-                        <select id="archiveAvocat" multiple size="4" required style="height: auto;">
-                            <option value="">Aucun avocat disponible</option>
-                        </select>
-                        <p style="color: #b8995a; font-size: 0.85em; margin-top: 5px;">
-                            Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs avocats
-                        </p>
-                    </div>
-                </div>
+                    <button type="submit">Archiver le Dossier</button>
+                </form>
+            </div>
 
-                <div class="form-group">
-                    <label>Description / Résumé</label>
-                    <textarea id="archiveDescription" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>📎 Fichiers Joints (PDF, PNG, JPG, DOCX...)</label>
-                    <input type="file" id="archiveFiles" multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.txt" 
-                           style="padding: 15px; background: #0f0f0f; cursor: pointer;">
-                    <p style="color: #b8995a; font-size: 0.9em; margin-top: 5px;">Vous pouvez sélectionner plusieurs fichiers</p>
-                    <div id="filesList" style="margin-top: 10px;"></div>
-                </div>
-
-                <button type="submit">Archiver</button>
-            </form>
-
-            <div class="search-box">
+            <!-- BARRE DE RECHERCHE -->
+            <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
                 <input type="text" id="searchArchives" placeholder="🔍 Rechercher dans les archives...">
             </div>
 
-            <div id="archivesList" class="grid"></div>
+            <!-- LISTE DES ARCHIVES AVEC ACCORDÉONS -->
+            <div id="archivesList"></div>
         </div>
     </div>
 
@@ -1676,45 +1873,108 @@
             );
 
             if (archivesFiltrees.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #b8995a; padding: 30px;">Aucune archive</p>';
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-secondary);">
+                        <div style="font-size: 4em; margin-bottom: 20px;">📂</div>
+                        <div style="font-size: 1.2em;">Aucune archive pour le moment</div>
+                    </div>
+                `;
                 return;
             }
 
-            list.innerHTML = archivesFiltrees.map(a => {
+            list.innerHTML = archivesFiltrees.map((a, index) => {
                 // Gérer les anciennes archives avec un seul avocat (string) et les nouvelles (array)
                 const avocatsDisplay = Array.isArray(a.avocats) 
-                    ? a.avocats.map(av => `<span style="background: #1a1a1a; padding: 4px 10px; border-radius: 15px; border: 1px solid #d4af37; display: inline-block; margin: 2px;">${av}</span>`).join(' ')
+                    ? a.avocats.map(av => `<span style="background: rgba(212, 175, 55, 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); display: inline-block; margin: 3px; color: var(--gold);">${av}</span>`).join(' ')
                     : a.avocat || 'Non spécifié';
                 
                 return `
-                    <div class="card">
-                        <h3>📁 ${a.numero}</h3>
-                        <p><strong>Type:</strong> ${a.type}</p>
-                        <p><strong>Client:</strong> ${a.client}</p>
-                        <p><strong>Avocat(s):</strong><br>${avocatsDisplay}</p>
-                        <p><strong>Date:</strong> ${new Date(a.date).toLocaleDateString('fr-FR')}</p>
-                        <p><strong>Description:</strong></p>
-                        <p style="white-space: pre-line;">${a.description}</p>
-                        ${a.fichiers && a.fichiers.length > 0 ? `
-                            <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #3a3a3a;">
-                                <p style="color: #d4af37; font-weight: 600; margin-bottom: 10px;">📎 Fichiers joints (${a.fichiers.length}):</p>
-                                <div class="files-grid">
-                                    ${a.fichiers.map(f => `
-                                        <div class="file-card">
-                                            <div class="icon">${f.icon}</div>
-                                            <div class="name">${f.name}</div>
-                                            <div style="color: #b8995a; font-size: 0.75em; margin-top: 5px;">${formatFileSize(f.size)}</div>
+                    <div class="accordion-item" id="accordion-${index}">
+                        <div class="accordion-header" onclick="toggleAccordion(${index})">
+                            <h3>
+                                <span style="color: var(--gold);">📁</span>
+                                Dossier ${a.numero} - ${a.client}
+                                <span style="font-size: 0.8em; font-weight: 400; color: var(--text-secondary); margin-left: 10px;">(${a.type})</span>
+                            </h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="dossier-card">
+                                    <div class="dossier-header">
+                                        <h4>📋 Informations du Dossier</h4>
+                                        <span class="dossier-date">📅 ${new Date(a.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    </div>
+                                    
+                                    <div class="dossier-info">
+                                        <div class="dossier-info-item">
+                                            <span class="dossier-info-label">N° Dossier</span>
+                                            <span class="dossier-info-value">${a.numero}</span>
                                         </div>
-                                    `).join('')}
+                                        <div class="dossier-info-item">
+                                            <span class="dossier-info-label">Type</span>
+                                            <span class="dossier-info-value">${a.type}</span>
+                                        </div>
+                                        <div class="dossier-info-item">
+                                            <span class="dossier-info-label">Client</span>
+                                            <span class="dossier-info-value">${a.client}</span>
+                                        </div>
+                                        <div class="dossier-info-item">
+                                            <span class="dossier-info-label">Date de Clôture</span>
+                                            <span class="dossier-info-value">${new Date(a.date).toLocaleDateString('fr-FR')}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin: 20px 0;">
+                                        <span class="dossier-info-label">Avocat(s) Responsable(s)</span>
+                                        <div style="margin-top: 8px;">${avocatsDisplay}</div>
+                                    </div>
+                                    
+                                    <div style="margin: 20px 0;">
+                                        <span class="dossier-info-label">Description / Résumé</span>
+                                        <p style="margin-top: 8px; line-height: 1.6; color: var(--text-primary); white-space: pre-line;">${a.description}</p>
+                                    </div>
+                                    
+                                    ${a.fichiers && a.fichiers.length > 0 ? `
+                                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                                            <span class="dossier-info-label">📎 Fichiers Joints (${a.fichiers.length})</span>
+                                            <div class="files-grid" style="margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                                                ${a.fichiers.map(f => `
+                                                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 15px; text-align: center; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+                                                        <div style="font-size: 2.5em; margin-bottom: 8px;">${f.icon}</div>
+                                                        <div style="font-size: 0.85em; color: var(--text-primary); word-break: break-word;">${f.name}</div>
+                                                        <div style="color: var(--text-secondary); font-size: 0.75em; margin-top: 5px;">${formatFileSize(f.size)}</div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <div class="dossier-actions" style="margin-top: 20px;">
+                                        <button class="btn-delete" onclick="supprimerArchive(${a.id})">🗑️ Supprimer</button>
+                                    </div>
                                 </div>
                             </div>
-                        ` : ''}
-                        <div class="card-actions">
-                            <button class="btn-delete" onclick="supprimerArchive(${a.id})">Supprimer</button>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+        
+        // Fonction pour toggle les accordéons
+        function toggleAccordion(index) {
+            const item = document.getElementById(`accordion-${index}`);
+            const allItems = document.querySelectorAll('.accordion-item');
+            
+            // Fermer tous les autres accordéons
+            allItems.forEach((otherItem, i) => {
+                if (i !== index && otherItem.classList.contains('active')) {
+                    otherItem.classList.remove('active');
+                }
+            });
+            
+            // Toggle l'accordéon cliqué
+            item.classList.toggle('active');
         }
 
         document.getElementById('searchArchives').addEventListener('input', (e) => {

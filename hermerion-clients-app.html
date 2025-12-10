@@ -840,13 +840,46 @@
             const [selectedTab, setSelectedTab] = useState(null);
             const [showPasswordModal, setShowPasswordModal] = useState(false);
             const [showNewClientModal, setShowNewClientModal] = useState(false);
+            const [showCabinetLoginModal, setShowCabinetLoginModal] = useState(false);
             const [loading, setLoading] = useState(true);
             const [unlockedTabs, setUnlockedTabs] = useState({});
+            const [isCabinetAuthenticated, setIsCabinetAuthenticated] = useState(false);
+            const CABINET_PASSWORD = "hermerion2025";
 
             useEffect(() => {
                 loadClientTabs();
                 loadUnlockedTabs();
+                checkCabinetAuth();
             }, []);
+            
+            function checkCabinetAuth() {
+                const cabinetAuth = localStorage.getItem('cabinet_auth');
+                if (cabinetAuth) {
+                    const authData = JSON.parse(cabinetAuth);
+                    const now = Date.now();
+                    if (now - authData.timestamp < 2 * 60 * 60 * 1000) {
+                        setIsCabinetAuthenticated(true);
+                    } else {
+                        localStorage.removeItem('cabinet_auth');
+                    }
+                }
+            }
+            
+            function handleCabinetLogin(password) {
+                if (password === CABINET_PASSWORD) {
+                    const authData = { authenticated: true, timestamp: Date.now() };
+                    localStorage.setItem('cabinet_auth', JSON.stringify(authData));
+                    setIsCabinetAuthenticated(true);
+                    setShowCabinetLoginModal(false);
+                    return true;
+                }
+                return false;
+            }
+            
+            function handleCabinetLogout() {
+                localStorage.removeItem('cabinet_auth');
+                setIsCabinetAuthenticated(false);
+            }
 
             async function loadClientTabs() {
                 try {
@@ -883,7 +916,17 @@
             }
 
             function handleSelectTab(tab) {
-                if (unlockedTabs[tab.id]) {
+                // Si mode cabinet, bypass le mot de passe automatiquement
+                if (isCabinetAuthenticated) {
+                    setSelectedTab(tab);
+                    // Marquer l'onglet comme déverrouillé pour cette session
+                    if (!unlockedTabs[tab.id]) {
+                        const now = Date.now();
+                        const newUnlocked = { ...unlockedTabs, [tab.id]: now };
+                        setUnlockedTabs(newUnlocked);
+                        localStorage.setItem('unlocked_tabs', JSON.stringify(newUnlocked));
+                    }
+                } else if (unlockedTabs[tab.id]) {
                     setSelectedTab(tab);
                 } else {
                     setSelectedTab(tab);
@@ -907,6 +950,36 @@
                         onSelectTab={handleSelectTab}
                         onNewClient={() => setShowNewClientModal(true)}
                         unlockedTabs={unlockedTabs}
+                        isCabinetAuthenticated={isCabinetAuthenticated}
+                        onCabinetLogin={() => setShowCabinetLoginModal(true)}
+                        onCabinetLogout={handleCabinetLogout}
+                        onDeleteTab={async (tabId) => {
+                            if (confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet onglet client ?\n\nCette action supprimera :\n- L\'onglet\n- Tous les messages\n- Tous les fichiers associés\n\nCette action est irréversible.')) {
+                                try {
+                                    // Supprimer les messages
+                                    await supabase.from('messages').delete().eq('tab_id', tabId);
+                                    // Supprimer les fichiers
+                                    await supabase.from('files').delete().eq('tab_id', tabId);
+                                    // Supprimer l'onglet
+                                    const { error } = await supabase.from('client_tabs').delete().eq('id', tabId);
+                                    
+                                    if (error) throw error;
+                                    
+                                    // Recharger la liste
+                                    loadClientTabs();
+                                    
+                                    // Si c'était l'onglet sélectionné, le désélectionner
+                                    if (selectedTab?.id === tabId) {
+                                        setSelectedTab(null);
+                                    }
+                                    
+                                    alert('✅ Onglet supprimé avec succès');
+                                } catch (error) {
+                                    console.error('Erreur suppression:', error);
+                                    alert('❌ Erreur lors de la suppression');
+                                }
+                            }
+                        }}
                     />
                     
                     <div className="main-content">
@@ -919,6 +992,7 @@
                             <ClientView 
                                 tab={selectedTab} 
                                 onClose={() => setSelectedTab(null)}
+                                isCabinetMode={isCabinetAuthenticated}
                             />
                         ) : (
                             <WelcomeView />
@@ -945,15 +1019,69 @@
                             }}
                         />
                     )}
+                    
+                    {showCabinetLoginModal && (
+                        <CabinetLoginModal
+                            onLogin={handleCabinetLogin}
+                            onClose={() => setShowCabinetLoginModal(false)}
+                        />
+                    )}
+                </div>
+            );
+        }
+        
+        // Cabinet Login Modal Component
+        function CabinetLoginModal({ onLogin, onClose }) {
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            
+            function handleSubmit(e) {
+                e.preventDefault();
+                const success = onLogin(password);
+                if (!success) {
+                    setError('Mot de passe incorrect');
+                    setPassword('');
+                }
+            }
+            
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <h3>🏢 Connexion Cabinet</h3>
+                        <p>Entrez le mot de passe du cabinet pour accéder au mode administration</p>
+                        
+                        {error && <div className="error-message">{error}</div>}
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Mot de passe Cabinet</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    autoFocus
+                                    required
+                                />
+                            </div>
+                            
+                            <button type="submit" className="btn-primary">
+                                Se connecter
+                            </button>
+                            <button type="button" className="btn-secondary" onClick={onClose}>
+                                Annuler
+                            </button>
+                        </form>
+                    </div>
                 </div>
             );
         }
 
         // Sidebar Component
-        function Sidebar({ clientTabs, selectedTab, onSelectTab, onNewClient, unlockedTabs }) {
+        function Sidebar({ clientTabs, selectedTab, onSelectTab, onNewClient, unlockedTabs, isCabinetAuthenticated, onCabinetLogin, onCabinetLogout, onDeleteTab }) {
             return (
                 <aside className="sidebar">
-                    <div className="logo-section">
+                    <div className="logo-section" onClick={() => window.location.href='index.html'} style={{cursor: 'pointer'}} title="Retour à l'accueil">
                         <svg className="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="100" cy="100" r="95" fill="none" stroke="#d4af37" strokeWidth="3"/>
                             <polygon points="100,60 130,100 100,140 70,100" fill="none" stroke="#d4af37" strokeWidth="2.5"/>
@@ -966,29 +1094,115 @@
                     </div>
                     
                     <div className="clients-list">
-                        <h3>Onglets Clients ({clientTabs.length})</h3>
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+                            <h3>Onglets Clients ({clientTabs.length})</h3>
+                            {isCabinetAuthenticated && (
+                                <span style={{color: 'var(--success)', fontSize: '0.85em', fontWeight: '600'}}>🏢</span>
+                            )}
+                        </div>
                         {clientTabs.map(tab => (
                             <div 
                                 key={tab.id}
-                                className={`client-item ${selectedTab?.id === tab.id ? 'active' : ''}`}
-                                onClick={() => onSelectTab(tab)}
+                                style={{position: 'relative', marginBottom: '8px'}}
                             >
-                                <div className="client-name">
-                                    <span className="client-icon">
-                                        {unlockedTabs[tab.id] ? '🔓' : '🔒'}
-                                    </span>
-                                    {tab.name}
+                                <div 
+                                    className={`client-item ${selectedTab?.id === tab.id ? 'active' : ''}`}
+                                    onClick={() => onSelectTab(tab)}
+                                    style={{paddingRight: isCabinetAuthenticated ? '50px' : '15px'}}
+                                >
+                                    <div className="client-name">
+                                        <span className="client-icon">
+                                            {isCabinetAuthenticated ? '🏢' : (unlockedTabs[tab.id] ? '🔓' : '🔒')}
+                                        </span>
+                                        {tab.name}
+                                    </div>
+                                    <div className="client-date">
+                                        {new Date(tab.created_at).toLocaleDateString('fr-FR')}
+                                    </div>
                                 </div>
-                                <div className="client-date">
-                                    {new Date(tab.created_at).toLocaleDateString('fr-FR')}
-                                </div>
+                                {isCabinetAuthenticated && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onDeleteTab(tab.id);
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            padding: '6px 10px',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            fontSize: '0.85em',
+                                            transition: 'all 0.3s ease',
+                                            zIndex: 10
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                                            e.currentTarget.style.boxShadow = 'none';
+                                        }}
+                                        title="Supprimer cet onglet"
+                                    >
+                                        🗑️
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
                     
-                    <button className="btn-new-client" onClick={onNewClient}>
-                        ➕ Nouvel Onglet Client
-                    </button>
+                    {isCabinetAuthenticated && (
+                        <button className="btn-new-client" onClick={onNewClient}>
+                            ➕ Nouvel Onglet Client
+                        </button>
+                    )}
+                    
+                    <div style={{padding: '20px 30px', borderTop: '1px solid var(--border)', marginTop: isCabinetAuthenticated ? '20px' : 'auto'}}>
+                        {isCabinetAuthenticated ? (
+                            <button 
+                                onClick={onCabinetLogout}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    fontSize: '0.95em'
+                                }}
+                            >
+                                🚪 Déconnexion Cabinet
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={onCabinetLogin}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)',
+                                    color: '#000',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    fontSize: '0.95em'
+                                }}
+                            >
+                                🏢 Mode Cabinet
+                            </button>
+                        )}
+                    </div>
                 </aside>
             );
         }
@@ -1311,7 +1525,7 @@
         }
 
         // Client View Component (PARTIE 1 - à continuer dans le prochain message)
-        function ClientView({ tab, onClose }) {
+        function ClientView({ tab, onClose, isCabinetMode }) {
             const [activeTab, setActiveTab] = useState('conversation');
             const [messages, setMessages] = useState([]);
             const [files, setFiles] = useState([]);
@@ -1411,6 +1625,7 @@
                                 tab={tab} 
                                 messages={messages}
                                 onMessageSent={loadMessages}
+                                isCabinetMode={isCabinetMode}
                             />
                         )}
                         {activeTab === 'files' && (
@@ -1427,7 +1642,7 @@
         }
 
         // Conversation Tab Component
-        function ConversationTab({ tab, messages, onMessageSent }) {
+        function ConversationTab({ tab, messages, onMessageSent, isCabinetMode }) {
             const [newMessage, setNewMessage] = useState('');
             const [sending, setSending] = useState(false);
             const messagesEndRef = useRef(null);
@@ -1447,13 +1662,16 @@
                 setSending(true);
 
                 try {
+                    const author = isCabinetMode ? 'Cabinet Hermerion' : tab.name;
+                    const isFromLawyer = isCabinetMode;
+                    
                     const { error } = await supabase
                         .from('messages')
                         .insert([{
                             tab_id: tab.id,
                             content: newMessage.trim(),
-                            author: 'Cabinet Hermerion',
-                            is_from_lawyer: true
+                            author: author,
+                            is_from_lawyer: isFromLawyer
                         }]);
 
                     if (error) throw error;
@@ -1470,6 +1688,24 @@
 
             return (
                 <div className="chat-container">
+                    {isCabinetMode && (
+                        <div style={{
+                            padding: '12px 20px',
+                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%)',
+                            border: '1px solid rgba(34, 197, 94, 0.3)',
+                            borderRadius: '10px',
+                            marginBottom: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            color: 'var(--success)',
+                            fontWeight: '600'
+                        }}>
+                            <span>🏢</span>
+                            Mode Cabinet - Messages identifiés comme "Cabinet Hermerion"
+                        </div>
+                    )}
+                    
                     <div className="messages-area">
                         {messages.length === 0 ? (
                             <div style={{textAlign: 'center', color: 'var(--text-secondary)', padding: '60px 20px'}}>
@@ -1484,7 +1720,7 @@
                                     className={`message ${msg.is_from_lawyer ? 'from-lawyer' : 'from-client'}`}
                                 >
                                     <div className="message-author">
-                                        {msg.author}
+                                        {msg.is_from_lawyer ? '🏢' : '👤'} {msg.author}
                                     </div>
                                     <div className="message-content">
                                         {msg.content}
@@ -1503,7 +1739,7 @@
                             type="text"
                             value={newMessage}
                             onChange={e => setNewMessage(e.target.value)}
-                            placeholder="Écrivez votre message..."
+                            placeholder={isCabinetMode ? "Message en tant que Cabinet..." : "Écrivez votre message..."}
                             disabled={sending}
                         />
                         <button type="submit" className="btn-send" disabled={sending || !newMessage.trim()}>

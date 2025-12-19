@@ -554,36 +554,36 @@
             </div>
             
             <nav class="nav">
-                <div class="tab active" onclick="showTab('honoraires')">💰 Barème Honoraires</div>
-                <div class="tab" onclick="showTab('clients')">👥 Demandes Clients</div>
+                <div class="tab active" data-tab="honoraires">💰 Barème Honoraires</div>
+                <div class="tab" data-tab="clients">👥 Demandes Clients</div>
                 
                 <div class="nav-divider"></div>
                 
-                <div class="tab private" onclick="showTab('comptabilite')">💼 Comptabilité</div>
-                <div class="tab private" onclick="showTab('equipe')">🏢 Gestion Équipe</div>
-                <div class="tab private" onclick="showTab('rdv')">📅 Rendez-vous</div>
-                <div class="tab private" onclick="showTab('factures')">📄 Factures</div>
-                <div class="tab private" onclick="showTab('fichiers-clients')">📁 Fichiers Clients</div>
-                <div class="tab private" onclick="showTab('archives')">🗄️ Archives</div>
+                <div class="tab private" data-tab="comptabilite">💼 Comptabilité</div>
+                <div class="tab private" data-tab="equipe">🏢 Gestion Équipe</div>
+                <div class="tab private" data-tab="rdv">📅 Rendez-vous</div>
+                <div class="tab private" data-tab="factures">📄 Factures</div>
+                <div class="tab private" data-tab="fichiers-clients">📁 Fichiers Clients</div>
+                <div class="tab private" data-tab="archives">🗄️ Archives</div>
             </nav>
             
             <div class="auth-section">
-                <button id="authButton" onclick="toggleAuthModal()">🔐 Connexion</button>
+                <button id="authButton">🔐 Connexion</button>
             </div>
         </aside>
 
         <!-- MODAL AUTH -->
         <div id="authModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center;">
             <div style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; position: relative;">
-                <button onclick="toggleAuthModal()" style="position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-secondary); font-size: 1.5em; cursor: pointer;">×</button>
+                <button id="closeModalBtn" style="position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-secondary); font-size: 1.5em; cursor: pointer;">×</button>
                 
                 <div id="loginForm">
                     <h3 style="font-family: 'Playfair Display', serif; font-size: 2em; color: var(--gold); margin-bottom: 15px; text-align: center;">🔐 Connexion Privée</h3>
                     <p style="color: var(--text-secondary); text-align: center; margin-bottom: 30px;">Accédez aux sections privées</p>
                     
-                    <input type="password" id="passwordInput" placeholder="Mot de passe" onkeypress="if(event.key === 'Enter') login()">
+                    <input type="password" id="passwordInput" placeholder="Mot de passe">
                     <br><br>
-                    <button onclick="login()" style="width: 100%;">Se connecter</button>
+                    <button id="loginBtn" style="width: 100%;">Se connecter</button>
                 </div>
                 
                 <div id="loggedInInfo" style="display: none; text-align: center;">
@@ -591,9 +591,9 @@
                     <h3 style="font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 10px;">Connecté</h3>
                     <p style="color: var(--text-secondary); margin-bottom: 30px;">Accès privé activé</p>
                     
-                    <button onclick="logout(); toggleAuthModal();" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">🚪 Se déconnecter</button>
-                    <button onclick="afficherStatsSauvegarde(); toggleAuthModal();" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">📊 Voir les données</button>
-                    <button onclick="confirmerEffacement(); toggleAuthModal();" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">🗑️ Effacer tout</button>
+                    <button id="logoutBtn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">🚪 Se déconnecter</button>
+                    <button id="statsBtn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">📊 Voir les données</button>
+                    <button id="deleteBtn" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">🗑️ Effacer tout</button>
                 </div>
             </div>
         </div>
@@ -1087,6 +1087,10 @@
     </div>
 
     <script>
+        // Envelopper tout dans une fonction pour isoler le scope
+        (function() {
+        'use strict';
+        
         // Système d'authentification
         let isAuthenticated = false;
         const correctPassword = "hermerion2025"; // Mot de passe par défaut - à changer
@@ -1214,7 +1218,12 @@
         // CONFIGURATION SUPABASE
         const SUPABASE_URL = 'https://gtlgwzqrpiwbkokdceew.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bGd3enFycGl3Ymtva2RjZWV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MzMxNzAsImV4cCI6MjA4MDEwOTE3MH0.c0ca6G62Sua3SJf27emXCa7wU3o-1aL1tDaYhoNQ3gU';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Utiliser window pour éviter les conflits de scope
+        if (!window.hermerionSupabase) {
+            window.hermerionSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+        const supabase = window.hermerionSupabase;
 
         // Données en mémoire
         let comptabilite = [];
@@ -1384,9 +1393,9 @@
             document.getElementById(tabName).classList.add('active');
             
             // Activer le bon onglet visuellement
-            const tabs = document.querySelectorAll('.tab');
+            const tabs = document.querySelectorAll('.tab[data-tab]');
             tabs.forEach(tab => {
-                if (tab.getAttribute('onclick') === `showTab('${tabName}')`) {
+                if (tab.getAttribute('data-tab') === tabName) {
                     tab.classList.add('active');
                 }
             });
@@ -1542,7 +1551,7 @@
             client.rdvCree = true;
             await mettreAJourClient(client.id, true);
             showTab('rdv');
-            document.querySelector('[onclick="showTab(\'rdv\')"]').click();
+            document.querySelector('.tab[data-tab="rdv"]').click();
             document.getElementById('rdvClient').value = `${client.prenom} ${client.nom}`;
             document.getElementById('rdvObjet').value = client.raison;
             afficherClients();
@@ -2330,10 +2339,40 @@
         afficherFichiersClients();
         updateComptabilite();
         updateAvocatSelects();
+        
+        // Event listeners pour l'authentification
+        document.getElementById('authButton').addEventListener('click', toggleAuthModal);
+        document.getElementById('closeModalBtn').addEventListener('click', toggleAuthModal);
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            logout();
+            toggleAuthModal();
+        });
+        document.getElementById('statsBtn').addEventListener('click', function() {
+            afficherStatsSauvegarde();
+            toggleAuthModal();
+        });
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            confirmerEffacement();
+            toggleAuthModal();
+        });
+        
+        // Event listeners pour les tabs de navigation
+        document.querySelectorAll('.tab[data-tab]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                showTab(tabName);
+            });
+        });
         }
         
         // Lancer l'initialisation
         init();
+        
+        })(); // Fin de la fonction auto-exécutante
     </script>
 </body>
 </html>

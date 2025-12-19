@@ -634,13 +634,13 @@
 
             <!-- BOUTONS D'EXPORT -->
             <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
-                <button onclick="telechargerComptabiliteExcel()" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); flex: 1; min-width: 200px;">
+                <button id="btnDownloadExcel" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); flex: 1; min-width: 200px;">
                     📊 Export Excel
                 </button>
-                <button onclick="telechargerComptabilitePDF()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); flex: 1; min-width: 200px;">
+                <button id="btnDownloadPDF" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); flex: 1; min-width: 200px;">
                     📄 Export PDF
                 </button>
-                <button onclick="telechargerFacturesExcel()" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); flex: 1; min-width: 200px;">
+                <button id="btnDownloadFactures" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); flex: 1; min-width: 200px;">
                     💼 Factures Excel
                 </button>
             </div>
@@ -1902,7 +1902,7 @@
                 
                 return `
                     <div class="accordion-item" id="accordion-${index}">
-                        <div class="accordion-header" onclick="toggleAccordion(${index})">
+                        <div class="accordion-header" data-index="${index}">
                             <h3>
                                 <span style="color: var(--gold);">📁</span>
                                 Dossier ${a.numero} - ${a.client}
@@ -1971,6 +1971,16 @@
                     </div>
                 `;
             }).join('');
+            
+            // Ajouter les event listeners aux accordéons après leur création
+            setTimeout(() => {
+                document.querySelectorAll('.accordion-header[data-index]').forEach(header => {
+                    header.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        toggleAccordion(index);
+                    });
+                });
+            }, 0);
         }
         
         // Fonction pour toggle les accordéons
@@ -2043,7 +2053,7 @@
                                     Dernier: ${new Date(dernierDossier.date).toLocaleDateString('fr-FR')}
                                 </p>
                             </div>
-                            <button onclick="toggleDossiers('${clientNom}')" style="padding: 10px 20px; font-size: 0.9em;">
+                            <button class="btn-toggle-dossiers" data-client="${clientNom}" style="padding: 10px 20px; font-size: 0.9em;">
                                 <span id="toggle-${clientNom}">📂 Voir les dossiers</span>
                             </button>
                         </div>
@@ -2086,6 +2096,16 @@
             });
 
             container.innerHTML = html;
+            
+            // Ajouter les event listeners aux boutons toggleDossiers
+            setTimeout(() => {
+                document.querySelectorAll('.btn-toggle-dossiers').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const clientNom = this.getAttribute('data-client');
+                        toggleDossiers(clientNom);
+                    });
+                });
+            }, 0);
         }
 
         function toggleDossiers(clientNom) {
@@ -2367,10 +2387,33 @@
                 showTab(tabName);
             });
         });
+        
+        // Event listeners pour les boutons de téléchargement
+        const btnExcel = document.getElementById('btnDownloadExcel');
+        const btnPDF = document.getElementById('btnDownloadPDF');
+        const btnFactures = document.getElementById('btnDownloadFactures');
+        
+        if (btnExcel) btnExcel.addEventListener('click', telechargerComptabiliteExcel);
+        if (btnPDF) btnPDF.addEventListener('click', telechargerComptabilitePDF);
+        if (btnFactures) btnFactures.addEventListener('click', telechargerFacturesExcel);
         }
         
         // Lancer l'initialisation
         init();
+        
+        // Exposer les fonctions au scope global pour les onclick dans les templates
+        window.toggleBaremes = toggleBaremes;
+        window.toggleDossiers = toggleDossiers;
+        window.toggleAccordion = toggleAccordion;
+        window.supprimerBareme = supprimerBareme;
+        window.supprimerClient = supprimerClient;
+        window.supprimerAvocat = supprimerAvocat;
+        window.supprimerFacture = supprimerFacture;
+        window.supprimerArchive = supprimerArchive;
+        window.supprimerCompta = supprimerCompta;
+        window.convertirEnRdv = convertirEnRdv;
+        window.convertirEnRdvDirect = convertirEnRdvDirect;
+        window.removeFile = removeFile;
         
         })(); // Fin de la fonction auto-exécutante
     </script>
